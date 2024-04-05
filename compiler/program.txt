@@ -1,0 +1,410 @@
+//Tanishq Chejara
+%{
+#include <stdio.h>
+%}
+
+%%
+
+int|float|char|void  { printf("'%s' is a keyword.\n", yytext); }
+[a-zA-Z][a-zA-Z0-9]* { printf("'%s' is not a keyword.\n", yytext); }
+.                     { printf("Invalid input.\n"); }
+
+%%
+
+int yywrap() {
+    return 1;
+}
+
+int main() {
+    yylex();
+    return 0;
+}
+
+
+#####  OUTPUT  ####:
+└─$ ./lexer1
+dog
+'dog' is not a keyword.
+
+fox
+'fox' is not a keyword.
+
+if
+'if' is not a keyword.
+
+IF
+'IF' is not a keyword.
+
+void
+'void' is a keyword.
+
+
+
+//Tanishq chejaraA
+%{
+#include <stdio.h>
+#include <string.h>
+
+int keyword_count = 0;
+
+// Function to check if a given string is a keyword
+int isKeyword(char *str) {
+    char keywords[4][10] = {"int", "float", "char", "void"};
+    for (int i = 0; i < 4; i++) {
+        if (strcmp(str, keywords[i]) == 0)
+            return 1; // If match found, return 1 (true)
+    }
+    return 0; // If no match found, return 0 (false)
+}
+%}
+
+%%
+{isKeyword(yytext)} { keyword_count++; }
+.                     ;
+
+%%
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    yyin = file; // Set input to file
+    yylex(); // Start lexical analysis
+
+    printf("Total number of keywords: %d\n", keyword_count);
+
+    fclose(file);
+    return 0;
+}
+
+
+└─$ ./lexer2 < temp.txt
+
+Total number of keywords: 2
+
+
+
+%{
+#include <stdio.h>
+int operator_count = 0;
+%}
+
+%%
+
+[+\-*/=<>!&|^%]  { operator_count++; }
+.                 { /* Ignore other characters */ }
+
+%%
+
+int yywrap() {
+    printf("Total number of operators: %d\n", operator_count);
+    return 1;
+}
+
+int main() {
+    yylex();
+    return 0;
+}
+
+EXAMPLE"
+#include <stdio.h>
+
+int main() {
+    int a = 10;
+    int b = 20;
+    int sum = a + b;
+    printf("Sum: %d\n", sum);
+    return 0;
+}
+
+
+└─$ ./lexer3 < temp.txt
+
+Total number of operators: 7
+
+//Tanishq Chejara
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_CHARACTERS 256
+int char_count[MAX_CHARACTERS] = {0};
+%}
+
+%%
+
+. { char_count[(int)yytext[0]]++; }
+\n { /* Ignore newline characters */ }
+
+%%
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    int c;
+    yyin = file;
+    yylex();
+
+    fclose(file);
+
+    printf("Character Counts:\n");
+    for (int i = 0; i < MAX_CHARACTERS; i++) {
+        if (char_count[i] > 0) {
+            printf("'%c': %d\n", (char)i, char_count[i]);
+        }
+    }
+
+    return 0;
+}
+
+
+└─$ ./lexer4 temp.txt
+Character Counts:
+' ': 1
+'!': 1
+',': 1
+'H': 1
+'d': 1
+'e': 1
+'l': 3
+'o': 2
+'r': 1
+'w': 1
+
+
+//Tanishq Chejara
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SYMBOLS 100
+
+typedef struct {
+    char name[50];
+    int value;
+} Symbol;
+
+Symbol symbolTable[MAX_SYMBOLS];
+int symbolCount = 0;
+
+void insertSymbol(const char *name, int value) {
+    if (symbolCount < MAX_SYMBOLS) {
+        strcpy(symbolTable[symbolCount].name, name);
+        symbolTable[symbolCount].value = value;
+        symbolCount++;
+        printf("Inserted: %s\n", name);
+    } else {
+        printf("Symbol table full. Cannot insert.\n");
+    }
+}
+
+void deleteSymbol(const char *name) {
+    int i;
+    for (i = 0; i < symbolCount; i++) {
+        if (strcmp(symbolTable[i].name, name) == 0) {
+            printf("Deleted: %s\n", name);
+            for (int j = i; j < symbolCount - 1; j++) {
+                strcpy(symbolTable[j].name, symbolTable[j + 1].name);
+                symbolTable[j].value = symbolTable[j + 1].value;
+            }
+            symbolCount--;
+            return;
+        }
+    }
+    printf("Symbol '%s' not found.\n", name);
+}
+
+void displaySymbolTable() {
+    printf("Symbol Table:\n");
+    printf("Name\tValue\n");
+    for (int i = 0; i < symbolCount; i++) {
+        printf("%s\t%d\n", symbolTable[i].name, symbolTable[i].value);
+    }
+}
+
+int main() {
+    insertSymbol("x", 10);
+    insertSymbol("y", 20);
+    insertSymbol("z", 30);
+
+    displaySymbolTable();
+
+    deleteSymbol("y");
+
+    displaySymbolTable();
+
+    return 0;
+}
+
+└─$ ./lexer5
+Inserted: x
+Inserted: y
+Inserted: z
+Symbol Table:
+Name    Value
+x       10
+y       20
+z       30
+Deleted: y
+Symbol Table:
+Name    Value
+x       10
+z       30
+
+//Tanishq Chejara
+%{
+#include <stdio.h>
+#include <string.h>
+%}
+
+%option noyywrap
+
+%%
+
+^[1-9][0-9]{9}$           { printf("Valid mobile number: %s\n", yytext); }
+((http|https):\/\/)?      { printf("Valid URL: %s\n", yytext); }
+[a-zA-Z_][a-zA-Z0-9_]*    { printf("Valid identifier: %s\n", yytext); }
+(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/\d{4}  { printf("Valid date: %s\n", yytext); }
+([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]          { printf("Valid time: %s\n", yytext); }
+.                          { printf("Invalid input.\n"); }
+
+%%
+
+int main() {
+    yylex();
+    return 0;
+}
+
+
+└─$ ./lexer6
+3456127809
+Valid mobile number: 3456127809
+
+variable123
+Valid identifier: variable123
+
+
+23:59:59
+Valid time: 23:59:59
+
+
+
+
+
+//Tanishq Chejara
+%{
+#include <stdio.h>
+int space_count = 0;
+int word_count = 0;
+int line_count = 0;
+%}
+
+%option noyywrap
+
+%%
+
+[ \t]   { space_count++; }
+\n      { line_count++; }
+[a-zA-Z]+   { word_count++; }
+
+%%
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    yyin = file;
+    yylex();
+
+    fclose(file);
+
+    printf("Blank Spaces: %d\n", space_count);
+    printf("Words: %d\n", word_count);
+    printf("Lines: %d\n", line_count);
+
+    return 0;
+}
+
+
+└─$ ./lexer7 temp.txt
+...Blank Spaces: 11
+Words: 14
+Lines: 4
+
+//Tanishq Chejara
+%{
+#include <stdio.h>
+int vowel_count = 0;
+int consonant_count = 0;
+%}
+
+%option noyywrap
+
+%%
+
+[a-zA-Z] {
+    if (yytext[0] == 'a' || yytext[0] == 'e' || yytext[0] == 'i' || yytext[0] == 'o' || yytext[0] == 'u' || yytext[0] == 'A' || yytext[0] == 'E' || yytext[0] == 'I' || yytext[0] == 'O' || yytext[0] == 'U') {
+        vowel_count++;
+    } else {
+        consonant_count++;
+    }
+}
+
+. ;  // Ignore everything else
+
+%%
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+        return 1;
+    }
+
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        perror("Error opening file");
+        return 1;
+    }
+
+    yyin = file;
+    yylex();
+
+    fclose(file);
+
+    printf("Vowel count: %d\n", vowel_count);
+    printf("Consonant count: %d\n", consonant_count);
+
+    return 0;
+}
+
+
+└─$ ./lexer8 temp.c
+
+Vowel count: 14
+Consonant count: 29
+
