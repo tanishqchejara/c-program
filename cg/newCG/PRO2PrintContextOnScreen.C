@@ -1,0 +1,13 @@
+#include<CONIO.H>
+#include<GRAPHICS.H>
+
+int main(){
+  int gd =DETECT,gm;
+  initgraph(&gd,&gm,(char *)"C://TURBOC3//BGI");
+  outtext((char *)"Test String");
+  getch();
+  cleardevice();
+  outtext((char *)"Press Any Key To Exit...");
+  getch();
+  closegraph();
+}
